@@ -2,4 +2,4 @@
 
 ## SBS To Do
 
-An Laravel application for organising and administering tasks. 
+A Laravel application for organising and administering tasks. 
