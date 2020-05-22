@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Repositories\TaskRepository;
 use App\Task;
-
+use App\Notifications\TaskNotification;
+use Auth;
 
 class TaskController extends Controller
 {
@@ -57,8 +58,16 @@ class TaskController extends Controller
         $request->user()->tasks()->create([
             'name' => $request->name,
         ]);
+        
+        $details = [
+            'subject'=>'A new task has been created',
+            'body' => 'A new task "' . $request->name . '" has been created',
+        ];
+
+        Auth::user()->notify(new TaskNotification($details));
 
         return redirect()->back();
+
     }
 
     /**
@@ -74,5 +83,10 @@ class TaskController extends Controller
         $task->delete();
 
         return redirect()->back();
+    }
+
+    public function show($id)
+    {
+        return view('tasks.task');
     }
 }
