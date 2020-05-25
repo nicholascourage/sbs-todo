@@ -20,7 +20,7 @@
                             <table class="table table-striped task-table">
                                 <thead>
                                     <th>Task</th>
-                                    <th>&nbsp;</th>
+                                    <th>Action</th>
                                 </thead>
                                 <tbody>
                                     @foreach ($tasks as $task)
@@ -29,14 +29,18 @@
     
                                             <!-- Task Delete Button -->
                                             <td>
-                                                <form action="{{url('task/' . $task->id)}}" method="POST">
-                                                    {{ csrf_field() }}
-                                                    {{ method_field('DELETE') }}
-    
+                                                <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" class="d-inline">
+                                                   @csrf    
+                                                   @method('DELETE')
+
                                                     <button type="submit" id="delete-task-{{ $task->id }}" class="btn btn-danger">
                                                         <i class="fa fa-btn fa-trash"></i>Delete
                                                     </button>
                                                 </form>
+                                                <a id="delete-task-{{ $task->id }}" class="btn btn-info" data-toggle="modal" data-target="#editTaskModal">
+                                                    <i class="fa fa-btn fa-trash"></i>Edit
+                                                </a>
+                                                @include('common.edit.modal')
                                             </td>
                                         </tr>
                                     @endforeach

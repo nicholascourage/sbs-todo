@@ -11,52 +11,58 @@ use Auth;
 class TaskController extends Controller
 {
     /**
-     * The task repository instance.
+     * Display a listing of the resource.
      *
-     * @var TaskRepository
+     * @return \Illuminate\Http\Response
      */
+
     protected $tasks;
 
-    /**
-     * Create a new controller instance.
-     *
-     * @param  TaskRepository  $tasks
-     * @return void
-     */
-    public function __construct(TaskRepository $tasks)
-    {
+
+    public function __construct( TaskRepository $tasks ){
+
         $this->middleware('auth');
 
         $this->tasks = $tasks;
+
     }
 
-    /**
-     * Display a list of all of the user's task.
-     *
-     * @param  Request  $request
-     * @return Response
-     */
     public function index(Request $request)
     {
         return view('tasks.index', [
-            'tasks' => $this->tasks->forUser($request->user()),
+            'tasks' => $this->tasks->forUser($request->user())->where('status', 'doing'),
         ]);
     }
 
     /**
-     * Create a new task.
+     * Show the form for creating a new resource.
      *
-     * @param  Request  $request
-     * @return Response
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return redirect()->back();
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
+
         $this->validate($request, [
             'name' => 'required|max:255',
         ]);
 
         $request->user()->tasks()->create([
+            
             'name' => $request->name,
+            'description'=> $request->description,
+            'status' => $request->status
+        
         ]);
         
         $details = [
@@ -71,22 +77,75 @@ class TaskController extends Controller
     }
 
     /**
-     * Destroy the given task.
+     * Display the specified resource.
      *
-     * @param  Request  $request
-     * @param  Task  $task
-     * @return Response
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request, Task $task)
+    public function show($id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
     {
 
-        $task->delete();
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        
+        $this->validate($request, [
+            'name' => 'required|max:255',
+        ]);
+
+        $task = Task::find($id);
+
+        $task->name = $request->name;
+
+        $task->description = $request->description;
+
+        $task->status = $request->status;
+
+        $task->save();
+
+        if($task->status == 'completed'){
+
+            $details = [
+                'subject'=>'A task has been completed',
+                'body' => 'Task "' . $request->name . '" has been completed',
+            ];
+    
+            Auth::user()->notify(new TaskNotification($details));
+
+        }
 
         return redirect()->back();
     }
 
-    public function show($id)
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Request $request, Task $task)
     {
-        return view('tasks.task');
+        $task->delete();
+
+        return redirect()->back();
     }
 }
